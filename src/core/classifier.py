@@ -5,6 +5,9 @@ import numpy as np
 from sklearn.metrics import classification_report, f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
 
 
 

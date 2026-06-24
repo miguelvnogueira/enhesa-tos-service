@@ -2,10 +2,6 @@ import logging
 import joblib
 from pathlib import Path
 import sys
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
-from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
-from sklearn.neural_network import MLPClassifier
 
 # Setup structural logging output formats
 logging.basicConfig(
