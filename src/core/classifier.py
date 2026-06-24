@@ -14,7 +14,7 @@ from sklearn.neural_network import MLPClassifier
 MODELS_TO_EXPERIMENT = {
     "LogisticRegression": LogisticRegression(
         class_weight="balanced", 
-        max_iter=1000, 
+        max_iter=5000, 
         random_state=42
     ),
     "LinearSVC": LinearSVC(
@@ -48,9 +48,15 @@ MODELS_TO_EXPERIMENT = {
 # Map of the search space structures per estimator family
 TUNING_GRIDS = {
     "LogisticRegression": {
-        "C": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],
-        "solver": ["saga", "lbfgs"],
-        "penalty": ["l2"]
+        # Expanded to a wider logarithmic scale of regularization strengths
+        "C": [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0], 
+        
+        # Added 'liblinear' which is great for smaller/medium text datasets
+        "solver": ["saga", "lbfgs", "liblinear"], 
+        
+        # Adding different penalties. Note: lbfgs only supports l2, 
+        # but RandomizedSearchCV will gracefully handle incompatible pairs by skipping/error_score
+        "penalty": ["l1", "l2"] 
     },
     "LinearSVC": {
         "C": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],
