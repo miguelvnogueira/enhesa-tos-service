@@ -1,90 +1,89 @@
-import io
+import logging
 import zipfile
-from pathlib import Path
 import pandas as pd
+from pathlib import Path
 
-class ClaudetteParser:
-    """Parses the CLAUDETTE corpus directly from memory out of a nested zip file."""
-    
-    def __init__(self, zip_path: str | Path):
-        self.zip_path = Path(zip_path)
+
+CATEGORIES_DICT = {
+    "is_unfair": "Labels",
+    "arbitration": "Labels_A",
+    "unilateral_change": "Labels_CH",
+    "content_removal": "Labels_CR",
+    "jurisdiction": "Labels_J",
+    "choice_of_law": "Labels_LAW",
+    "limitation_of_liability": "Labels_LTD",
+    "unilateral_termination": "Labels_TER",
+    "contract_by_using": "Labels_USE"
+}
+
+
+
+def extract_all_lines_from_txt_in_zipfile(archive: zipfile.ZipFile, internal_path: str) -> list[str]:
+    """ For a given txt file inside the zip, extracts a list of all lines (each line is list item)
+
+    Args:
+        archive (zipfile.ZipFile): target zipfile objetct
+        internal_path (str): internal path to target txt file inside each file
+
+    Returns:
+        list[str]: list of all lines in target txt file
+    """
+    try:
+        with archive.open(internal_path) as f:
+            return [line.decode("utf-8", errors="ignore").strip() for line in f.readlines()]
+    except KeyError:
+        return []
+
+
+def parse_claudette_zipfile(zip_filepath: str) -> pd.DataFrame:
+    """ Given the ToS Claudette zip file, extracts all sentences for all companies in the dataset and corresponding 
+    labels into a dataframe
+
+    (SEE CATEGORIES_DICT for labels mapping)
+
+    Args:
+        zip_filepath (str): path to target ToS Claudette ToS zipfile
+
+    Returns:
+        pd.DataFrame: dataframe containing all sentences for all companies and corresponding labels
+    """
+    all_sentences_df=pd.DataFrame({})
+
+    with zipfile.ZipFile(zip_filepath, "r") as archive:
         
-        # Categorical folder names mapping to internal structures
-        self.categories = {
-            "is_unfair": "Labels",
-            "arbitration": "Labels_A",
-            "unilateral_change": "Labels_CH",
-            "content_removal": "Labels_CR",
-            "jurisdiction": "Labels_J",
-            "choice_of_law": "Labels_LAW",
-            "limitation_of_liability": "Labels_LTD",
-            "unilateral_termination": "Labels_TER",
-            "contract_by_using": "Labels_USE"
-        }
-
-    def _read_zip_lines(self, archive: zipfile.ZipFile, internal_path: str) -> list[str]:
-        try:
-            with archive.open(internal_path) as f:
-                return [line.decode("utf-8", errors="ignore").strip() for line in f.readlines()]
-        except KeyError:
-            return []
-
-    def parse(self) -> pd.DataFrame:
-        records = []
+        logging.info('Getting all files in zip...')
+        all_files_in_zip = archive.namelist()
         
-        with zipfile.ZipFile(self.zip_path, "r") as archive:
-            all_files = archive.namelist()
-            
-            # Scans for the text files anywhere inside the zip, bypassing any top-level wrapper directory
-            sentence_files = [
-                f for f in all_files 
-                if "/sentences/" in f.lower() and f.endswith(".txt")
-            ]
-            
-            if not sentence_files:
-                # If it's a flat zip file without a parent directory wrapper
-                sentence_files = [f for f in all_files if f.lower().startswith("sentences/") and f.endswith(".txt")]
-                
-            if not sentence_files:
-                raise ValueError(f"Could not find any 'Sentences' directory inside the zip file structure.")
+        
+        logging.info('Getting all sentence files in zip...')
+        sentence_files = [
+            f for f in all_files_in_zip
+            if "/sentences/" in f.lower() and f.endswith(".txt")
+        ]
 
-            for file_name in sentence_files:
-                pure_filename = Path(file_name).name  # e.g., "9gag.txt"
-                company = Path(file_name).stem       # e.g., "9gag"
-                
-                sentences = self._read_zip_lines(archive, file_name)
-                
-                # Match the label matrices using relative lookups to account for the parent folder
-                labels_matrix = {}
-                for col_name, folder in self.categories.items():
-                    # Safely look up the exact internal path for the target label file
-                    internal_label_path = next(
-                        (f for f in all_files if f.lower().endswith(f"{folder.lower()}/{pure_filename.lower()}")),
-                        None
-                    )
-                    
-                    lines = self._read_zip_lines(archive, internal_label_path) if internal_label_path else []
-                    labels_matrix[col_name] = [
-                        int(val) if val.replace('-', '').isdigit() else -1 
-                        for val in lines
-                    ]
 
-                # Align lines cleanly
-                for idx, sentence in enumerate(sentences):
-                    if not sentence: 
-                        continue  
-                    
-                    row = {
-                        "company": company,
-                        "sentence_idx": idx,
-                        "text": sentence
-                    }
-                    
-                    for col_name in self.categories.keys():
-                        stream = labels_matrix[col_name]
-                        val = stream[idx] if idx < len(stream) else -1
-                        row[col_name] = 1 if val in (2, 3) else 0
-                    
-                    records.append(row)
-                    
-        return pd.DataFrame(records)
+        logging.info('looping all sentence files from all companies...')
+        for sentence_filepath in sentence_files:
+
+            sentence_dict={}
+
+            filename = Path(sentence_filepath).name
+            company = Path(filename).stem
+            logging.info(f"Processing company {company}...")
+
+            logging.info("Extracting all sentences...")
+            sentences=extract_all_lines_from_txt_in_zipfile(archive,sentence_filepath)
+
+            sentence_dict['company']=[company]* len(sentences)
+            sentence_dict['sentence']=sentences
+            for col_name, folder in CATEGORIES_DICT.items():        
+                logging.info(f"Extracting all corresponding labels for {col_name}...")
+                labels_filepath=f"{sentence_filepath.split('/')[0]}/{folder}/{filename}"
+                raw_lines=extract_all_lines_from_txt_in_zipfile(archive,labels_filepath)
+                sentence_dict[col_name] = [int(line.strip()) if line.strip().replace('-', '').isdigit() else 0 for line in raw_lines]
+                
+            company_df=pd.DataFrame(sentence_dict)
+        all_sentences_df=pd.concat([all_sentences_df,company_df],ignore_index=True)
+
+
+    return all_sentences_df
