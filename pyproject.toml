@@ -1,0 +1,27 @@
+[project]
+name = "enhesa-tos-service"
+version = "0.1.0"
+description = "Semantic similarity search and legal compliance classification engine."
+authors = [
+    {name = "Miguel Nogueira", email = "miguelvnogueira@gmail.com"}
+]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas (>=3.0.3,<4.0.0)",
+    "faiss-cpu (>=1.14.3,<2.0.0)",
+    "sentence-transformers (>=5.6.0,<6.0.0)",
+    "tqdm (>=4.68.3,<5.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "ipykernel (>=7.3.0,<8.0.0)"
+]
