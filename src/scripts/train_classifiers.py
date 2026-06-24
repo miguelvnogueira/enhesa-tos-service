@@ -25,7 +25,7 @@ logging.info(f"Project root added to execution runtime path: {PROJECT_ROOT}")
 
 from src.core.dataset_parser import parse_claudette_zipfile
 from src.core.feature_engine import SimpleEmbeddingEngine
-from src.core.classifier import ClauseClassifier,
+from src.core.classifier import ClauseClassifier, MODELS_TO_EXPERIMENT
 
 
 
