@@ -22,30 +22,50 @@ class SimpleEmbeddingEngine:
         self.corpus_embeddings = None
         self.metadata_df = None
 
+
+    def transform(self, texts: list[str] | str) -> np.ndarray:
+            """
+            Encodes raw text or a list of text strings into the precise float32 matrix 
+            structure expected by downstream classifiers and matrix similarity steps.
+            """
+            if self.encoder is None:
+                raise ValueError("Encoder framework is uninitialized.")
+            
+            # Coerce a single string input into a list format to guarantee a 2D matrix shape output
+            if isinstance(texts, str):
+                texts = [texts]
+                
+            return self.encoder.encode(texts, convert_to_numpy=True).astype("float32")
+
     def build_index(self, df: pd.DataFrame) -> np.ndarray:
-        """Encodes a textual dataframe corpus into a fixed continuous feature space matrix."""
-        logging.info(f"Transforming {len(df)} lines into a dense feature space...")
-        self.corpus_embeddings = self.encoder.encode(df['text'].tolist(), convert_to_numpy=True).astype("float32")
-        self.metadata_df = df[['company', 'sentence_idx', 'text', 'is_unfair']].copy().reset_index(drop=True)
-        return self.corpus_embeddings
+            """Encodes a textual dataframe corpus into a fixed continuous feature space matrix."""
+            logging.info(f"Transforming {len(df)} lines into a dense feature space...")
+            
+            # CALLS THE NEW TRANSFORM METHOD INTERNALLY 
+            self.corpus_embeddings = self.transform(df['text'].tolist())
+            
+            self.metadata_df = df[['company', 'sentence_idx', 'text', 'is_unfair']].copy().reset_index(drop=True)
+            return self.corpus_embeddings
 
     def search(self, query_text: str, top_k: int = 3) -> list[dict]:
-        """Performs a spatial proximity query using basic cosine similarity scoring."""
-        if self.corpus_embeddings is None or self.metadata_df is None:
-            raise ValueError("Engine states must be initialized or loaded before running queries.")
+            """Performs a spatial proximity query using basic cosine similarity scoring."""
+            if self.corpus_embeddings is None or self.metadata_df is None:
+                raise ValueError("Engine states must be initialized or loaded before running queries.")
+                
+            # ALSO CALLS THE UNIFIED TRANSFORM METHOD
+            query_vector = self.transform(query_text)
             
-        query_vector = self.encoder.encode([query_text], convert_to_numpy=True)
-        scores = cosine_similarity(query_vector, self.corpus_embeddings)[0]
-        top_indices = scores.argsort()[::-1][:top_k]
-        
-        results = []
-        for idx in top_indices:
-            row = self.metadata_df.iloc[idx].to_dict()
-            row['similarity_score'] = float(scores[idx])
-            results.append(row)
+            scores = cosine_similarity(query_vector, self.corpus_embeddings)[0]
+            top_indices = scores.argsort()[::-1][:top_k]
             
-        return results
-
+            results = []
+            for idx in top_indices:
+                row = self.metadata_df.iloc[idx].to_dict()
+                row['similarity_score'] = float(scores[idx])
+                results.append(row)
+                
+            return results
+            
     def save_artifacts(self, output_dir: Path) -> None:
         """
         Serializes the active numerical matrix and metadata lookup tables directly to disk.
