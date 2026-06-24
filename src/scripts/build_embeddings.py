@@ -25,8 +25,7 @@ from src.core.classifier import ClauseClassifier
 
 def main():
     zip_filepath = PROJECT_ROOT / "data" / "ToS.zip"
-    logging.info(f"Fetching raw data from {zip_path}& parsing...")
-
+    logging.info(f"Fetching raw data from {zip_filepath}& parsing...")
     labeled_sentences_df=parse_claudette_zipfile(zip_filepath)
     
     logging.info("Initializing the Semantic Vector Space Engine...")
@@ -36,14 +35,11 @@ def main():
     X_embeddings = engine.build_index(labeled_sentences_df)
     logging.info(f"Successfully generated text embeddings matrix of shape: {X_embeddings.shape}")
 
-    artifact_dir = PROJECT_ROOT / "models" / "search_artifacts"
-    logging.info(f"Saving compiled matrices and metadata definitions to {artifact_dir}...")
-    engine.save_artifacts(artifact_dir)
+    artifacts_dir = PROJECT_ROOT / "models" / "search_artifacts"
+    logging.info(f"Saving compiled matrices and metadata definitions to {artifacts_dir}...")
+    engine.save_artifacts(artifacts_dir)
 
     logging.info(f"Processing complete! Embedding binaries and indexes are safely frozen on disk.")
-
-
-
 
 
 

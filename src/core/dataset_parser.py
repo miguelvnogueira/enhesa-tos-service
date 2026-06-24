@@ -75,7 +75,8 @@ def parse_claudette_zipfile(zip_filepath: str) -> pd.DataFrame:
             sentences=extract_all_lines_from_txt_in_zipfile(archive,sentence_filepath)
 
             sentence_dict['company']=[company]* len(sentences)
-            sentence_dict['sentence']=sentences
+            sentence_dict['sentence_idx'] = list(range(len(sentences)))
+            sentence_dict['text']=sentences        
             for col_name, folder in CATEGORIES_DICT.items():        
                 logging.info(f"Extracting all corresponding labels for {col_name}...")
                 labels_filepath=f"{sentence_filepath.split('/')[0]}/{folder}/{filename}"
@@ -83,7 +84,7 @@ def parse_claudette_zipfile(zip_filepath: str) -> pd.DataFrame:
                 sentence_dict[col_name] = [int(line.strip()) if line.strip().replace('-', '').isdigit() else 0 for line in raw_lines]
                 
             company_df=pd.DataFrame(sentence_dict)
-        all_sentences_df=pd.concat([all_sentences_df,company_df],ignore_index=True)
+            all_sentences_df=pd.concat([all_sentences_df,company_df],ignore_index=True)
 
 
     return all_sentences_df
