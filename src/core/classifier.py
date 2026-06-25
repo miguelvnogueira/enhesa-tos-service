@@ -5,16 +5,16 @@ import numpy as np
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, SVC
 from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
-
-
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 MODELS_TO_EXPERIMENT = {
     "LogisticRegression": LogisticRegression(
         class_weight="balanced", 
-        max_iter=1000, 
+        max_iter=5000, 
         random_state=42
     ),
     "LinearSVC": LinearSVC(
@@ -23,6 +23,14 @@ MODELS_TO_EXPERIMENT = {
         max_iter=5000, 
         random_state=42
     ),
+    "SVC_RBF_Pipeline": Pipeline([
+        ("scaler", StandardScaler()),
+        ("svc", SVC(
+            kernel="rbf", 
+            class_weight="balanced", 
+            random_state=42
+        ))
+    ]),
     "RandomForest": RandomForestClassifier(
         class_weight="balanced", 
         n_estimators=200, 
@@ -32,8 +40,7 @@ MODELS_TO_EXPERIMENT = {
     "HistGradientBoosting": HistGradientBoostingClassifier(
         random_state=42
     ),
-    "MLPClassifier":MLPClassifier(
-        # Defines a DNN with 3 hidden layers: 128 neurons -> 64 neurons -> 32 neurons
+    "MLPClassifier": MLPClassifier(
         hidden_layer_sizes=(128, 64, 32),
         activation="relu",
         solver="adam",
@@ -44,18 +51,22 @@ MODELS_TO_EXPERIMENT = {
     )
 }
 
-
 # Map of the search space structures per estimator family
 TUNING_GRIDS = {
     "LogisticRegression": {
-        "C": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],
-        "solver": ["saga", "lbfgs"],
-        "penalty": ["l2"]
+        "C": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],         
+        "solver": ["saga", "lbfgs"],         
+        "l1_ratio": [0.0, 1.0] 
     },
     "LinearSVC": {
         "C": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],
         "loss": ["squared_hinge"],
         "tol": [1e-4, 1e-3, 1e-2]
+    },
+    "SVC_RBF_Pipeline": {
+        # Prefixed with 'svc__' to target the estimator inside the Pipeline
+        "svc__C": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
+        "svc__gamma": ["scale", "auto", 0.001, 0.01, 0.1, 1.0]
     },
     "RandomForest": {
         "n_estimators": [100, 200, 500],
@@ -72,11 +83,8 @@ TUNING_GRIDS = {
     },
     "MLPClassifier": {
         "hidden_layer_sizes": [(128, 64, 32), (128, 64), (64, 32)],
-        # Increase alpha to regularize the network weights strongly 
-        # against over-indexing on the dominant class patterns
         "alpha": [0.001, 0.01, 0.1, 1.0], 
         "learning_rate_init": [0.001, 0.01],
-        # 'adam' or 'sgd' with a different momentum pattern can be tested
         "solver": ["adam"]
     }
 }
