@@ -24,27 +24,32 @@ To establish enterprise credibility and defensibility , the architectural decisi
 ```mermaid
 graph TD
     %% Define Styles and Colors
-    classDef default fill:#1e1e2e,stroke:#cdd6f4,stroke-width:1px,color:#cdd6f4;
     classDef input fill:#313244,stroke:#f5e0dc,stroke-width:2px,color:#f5e0dc;
     classDef processing fill:#11111b,stroke:#89b4fa,stroke-width:1px,color:#89b4fa;
     classDef flow fill:#181825,stroke:#a6e3a1,stroke-width:1px,color:#a6e3a1;
     classDef output fill:#313244,stroke:#f38ba8,stroke-width:2px,color:#f38ba8;
 
     %% Workflow Nodes
-    A[Incoming Target Clause] :::input --> B[Legal-BERT Vectorization]:::processing
-    B --> C[Dense Embedding Vector<br>768-Dim float32]:::processing
+    A[Incoming Target Clause] --> B[Legal-BERT Vectorization]
+    B --> C[Dense Embedding Vector<br>768-Dim float32]
     
     %% Dual Flows
-    C -->|Route Vector| D[Global Classification Flow<br>Calibrated Classifier SVC-RBF<br>Platt Scaling Curve]:::flow
-    C -->|Query Vector| E[Local Semantic Neighborhood Flow<br>Spatial Index Vector Search<br>Pulls Top-K K=5 Closest Elements]:::flow
+    C -->|Route Vector| D[Global Classification Flow<br>Calibrated Classifier SVC-RBF<br>Platt Scaling Curve]
+    C -->|Query Vector| E[Local Semantic Neighborhood Flow<br>Spatial Index Vector Search<br>Pulls Top-K K=5 Closest Elements]
     
     %% Merge at Bayesian Layer
-    D -->|Continuous Prior Probability| F[Bayesian Post-Processor]:::processing
+    D -->|Continuous Prior Probability| F[Bayesian Post-Processor]
     E -->|Continuous Similarity Scores| F
     
     %% Final Outputs
-    F --> G[Context-Aware Posterior Probability]:::processing
-    G -->|Decision Threshold >= 0.50| H[JSON Payload Delivery<br>0/1 Verdict + Top-K Neighbors]:::output
+    F --> G[Context-Aware Posterior Probability]
+    G -->|Decision Threshold >= 0.50| H[JSON Payload Delivery<br>0/1 Verdict + Top-K Neighbors]
+
+    %% Apply Styles explicitly at the bottom to avoid older parser errors
+    class A input;
+    class B,C,F,G processing;
+    class D,E flow;
+    class H output;
 ```
 
                   ┌──────────────────────┐
