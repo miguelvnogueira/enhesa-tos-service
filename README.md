@@ -80,6 +80,14 @@ graph TD
 The flow above represents the entire experimental ground considered for indexing, semantic search and classification. Notice however, that Bayesian postprocessing (in its current form) showed no significant imp
 For more details, the user is referred to the [Report.pdf](Report.pdf).
 
+Additionally the solution also includes:
+- a python FastAPI service (/src/api)
+- a Dockerfile to build the service
+- a minimal user interface to interact with the service
+
+**Instructions on how to build and run are provided below.**
+
+
 ---
 
 
