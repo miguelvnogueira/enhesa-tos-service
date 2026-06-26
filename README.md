@@ -122,7 +122,7 @@ sudo docker-compose up
 ```
 
 ### Testing the API
-curl -X POST http://localhost:8000/api/v1/analyze \
+curl -X POST http://localhost:8000/api/analyze \
      -H "Content-Type: application/json" \
      -d '{"sentence": "The provider reserves the right to modify these terms at any time without prior notification.", "top_k":3}'
 

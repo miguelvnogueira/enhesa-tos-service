@@ -66,6 +66,7 @@ async def analyze_clause(payload: AnalysisRequest):
         search_engine = ml_models["search_engine"]
         clause_clf = ml_models["clause_clf"]
         
+        logging.info('got models')
         # Call your existing domain processing logic
         search_results, is_unfair = process_user_sentence(
             search_engine, 

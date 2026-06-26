@@ -15,7 +15,7 @@ from src.core.classifier import ClauseClassifier
 
 def process_user_sentence(
     search_engine: Union[SimpleEmbeddingEngine, LegalBertEmbeddingEngine], 
-    clause_cl: ClauseClassifier, 
+    clause_clf: ClauseClassifier, 
     input_sentence: str, 
     top_k: int=3
     ) -> Tuple[List[Dict[str, Any]], np.ndarray]:
