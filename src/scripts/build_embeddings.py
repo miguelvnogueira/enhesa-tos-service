@@ -29,7 +29,6 @@ def main():
     logging.info("Initializing the Semantic Vector Space Engine for Simple Embeddings...")
     engine = SimpleEmbeddingEngine()
 
-    # 1. Compute the dense text-coordinate matrices
     X_embeddings = engine.build_index(labeled_sentences_df)
     logging.info(f"Successfully generated text embeddings matrix of shape: {X_embeddings.shape}")
 
@@ -41,7 +40,6 @@ def main():
     logging.info("Initializing the Semantic Vector Space Engine for LEGAL-BERT...")
     engine = LegalBertEmbeddingEngine()
 
-    # 1. Compute the dense text-coordinate matrices
     X_embeddings = engine.build_index(labeled_sentences_df)
     logging.info(f"Successfully generated text embeddings matrix of shape: {X_embeddings.shape}")
 

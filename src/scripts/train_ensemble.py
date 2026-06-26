@@ -26,7 +26,19 @@ from src.core.feature_engine import LegalBertEmbeddingEngine
 from src.core.classifier import MODELS_TO_EXPERIMENT
 
 def load_base_estimators():
-    """Loads the pre-tuned model weights frozen by your previous script."""
+    """
+    Loads and unwraps the pre-tuned ensemble base estimators from disk storage.
+
+    1. Iterates through the configured model experiment registry keys.
+    2. Dynamically resolves serialization paths for frozen joblib binary artifacts.
+    3. Safely extracts the core underlying model instance from any wrapper abstractions.
+    4. Compiles a named tuple-like list structure required by downstream ensemble meta-classifiers.
+
+    Returns:
+        list[tuple[str, object]]: A collection of named estimator pairs, where each tuple 
+            contains the string identifier key and the unmarshalled concrete model instance.
+            Returns an empty list if no frozen artifacts are successfully resolved.
+    """
     estimators = []
     
     model_names = list(MODELS_TO_EXPERIMENT.keys())
@@ -66,7 +78,7 @@ def main():
     meta_learner = LogisticRegression(
         max_iter=5000,         
         solver="lbfgs",        
-        class_weight="balanced", # Keeps handling the unfair/fair class imbalance
+        class_weight="balanced", 
         random_state=42
     )    
     
@@ -75,7 +87,7 @@ def main():
         final_estimator=meta_learner,
         cv=5,            
         n_jobs=-1,       
-        passthrough=False # <-- RESET: Evaluate ONLY base model predictions, no embeddings
+        passthrough=False
     )    
     logging.info("Training Meta-Ensemble Stacking Classifier (generating out-of-fold predictions)...")
     stacking_clf.fit(X_train, y_train)
@@ -84,7 +96,6 @@ def main():
     y_pred = stacking_clf.predict(X_test)
     metrics_payload = classification_report(y_test, y_pred, output_dict=True)
     
-    # 8. Print Results formatted cleanly to match your leaderboard
     ensemble_metrics = {
         "Model": "MetaEnsemble_Stacking",
         "macro_f1": metrics_payload["macro avg"]["f1-score"],
@@ -94,7 +105,6 @@ def main():
     }
     
     
-    # 9. Freeze the ensemble to disk
     ensemble_output_dir = CLASSIFIERS_DIR / "MetaEnsemble_Stacking"
     ensemble_output_dir.mkdir(parents=True, exist_ok=True)
     joblib.dump(stacking_clf, ensemble_output_dir / "model.joblib")

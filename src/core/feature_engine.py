@@ -151,11 +151,17 @@ class SimpleEmbeddingEngine:
         """
         Loads pre-computed matrix configurations and dataframe records into RAM memory blocks.
 
-        Parameters:
-        -----------
-        output_dir : Path
-            The directory path from which assets will be fetched.
-        """
+        1. Inspects designated storage nodes to confirm tracking targets exist.
+        2. Pulls saved binary float32 tensor records back into system layout schemas.
+        3. Restores relational tracking variables to make engines instantly responsive.
+
+        Args:
+            output_dir (Path): The source storage folder path from which serialized 
+                binary assets and pickles will be read.
+
+        Returns:
+            None: Instantiates model state memories across active runtime frames.
+        """        
         emb_path = output_dir / "embeddings.npy"
         meta_path = output_dir / "metadata.pkl"
         
@@ -181,7 +187,23 @@ class LegalBertEmbeddingEngine:
     """
     
     def __init__(self, model_name: str = "nlpaueb/legal-bert-base-uncased") -> None:
-        """Initializes the specialized dense legal vector encoder space."""
+        """
+        Initializes the specialized dense Legal-BERT vector encoder space
+
+        1. Suppresses verbose Hugging Face initialization streams to ensure clean runtime output.
+        2. Spawns the underlying contextual token transformer block using target model weights.
+        3. Chains an explicit mean-pooling layer to contract sequence lengths into stable structures.
+        4. Compiles the modular sentence-level encoder execution pipeline.
+
+        Args:
+            model_name (str): The Hugging Face registry key or local directory route pointing 
+                to the specialized target base transformer. Defaults to "nlpaueb/legal-bert-base-uncased".
+
+        Raises:
+            Exception: Encapsulates and passes up any file system, memory allocation, or network 
+                connectivity failures encountered during the weight assembly process.
+        """
+
         logging.info(f"Assembling Legal-BERT vector mapping space using base model: {model_name}")
         
         try:
@@ -220,6 +242,18 @@ class LegalBertEmbeddingEngine:
         """
         Encodes raw text or a list of text strings into the precise float32 matrix 
         structure expected by downstream classifiers and matrix similarity steps.
+
+        1. Validates and ensures the text encoder framework is correctly warmed up.
+        2. Normalizes varying scalar shapes by coercing raw strings into a list format array.
+        3. Projects the sequence data through the transformer blocks to map semantic traits.
+
+        Args:
+            texts (list[str] | str): A single raw sentence string or a collection list 
+                of text sentences to be processed through the semantic feature pipeline.
+
+        Returns:
+            np.ndarray: A precise 2D continuous feature space matrix of float32 
+                embeddings ready for downstream classification or distance comparisons.
         """
         if self.encoder is None:
             raise ValueError("Encoder framework is uninitialized.")
@@ -244,7 +278,22 @@ class LegalBertEmbeddingEngine:
 
 
     def search(self, query_text: str, top_k: int = 3) -> list[dict]:
-        """Performs a spatial proximity query using basic cosine similarity scoring."""
+        """
+        Performs a spatial proximity query using basic cosine similarity scoring.
+
+        1. Converts user target text patterns into matching continuous dense feature arrays.
+        2. Evaluates distance metrics across the precomputed historical matrix arrays.
+        3. Ranks historical matches based on proximity weights and combines original records.
+
+        Args:
+            query_text (str): The raw evaluation clause sentence to look up across the database.
+            top_k (int, optional): Total maximum count of close matching documents to return. 
+                Defaults to 3.
+
+        Returns:
+            list[dict]: A ranked array of data structures containing close semantic texts, 
+                original ground-truth parameters, and calculated metric scores.
+        """
         if self.corpus_embeddings is None or self.metadata_df is None:
             raise ValueError("Engine states must be initialized or loaded before running queries.")
             
@@ -266,16 +315,25 @@ class LegalBertEmbeddingEngine:
     def save_artifacts(self, output_dir: Path) -> None:
         """
         Serializes the active numerical matrix and metadata lookup tables directly to disk.
+
+        1. Ensures baseline indexes are actively instantiated in working system buffers.
+        2. Flushes the dense vector feature spaces into continuous binary numpy files.
+        3. Pickles structured lookups to preserve structural schemas outside active runtimes.
+
+        Args:
+            output_dir (Path): Explicit directory filesystem coordinates indicating where 
+                the compiled analytical states should be deposited.
+
+        Returns:
+            None: Commits cached structures onto stable storage layers.
         """
         if self.corpus_embeddings is None or self.metadata_df is None:
             raise ValueError("No calculated states found to save. Run build_index first.")
             
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # 1. Save the numerical matrix efficiently as binary numpy format
         np.save(output_dir / "embeddings.npy", self.corpus_embeddings)
         
-        # 2. Save the metadata dataframe structure as a pickle file
         self.metadata_df.to_pickle(output_dir / "metadata.pkl")
         
         logging.info(f"Successfully saved all search artifacts to {output_dir}")
@@ -284,7 +342,18 @@ class LegalBertEmbeddingEngine:
     def load_artifacts(self, output_dir: Path) -> None:
         """
         Loads pre-computed matrix configurations and dataframe records into RAM memory blocks.
-        """
+
+        1. Inspects designated storage nodes to confirm tracking targets exist.
+        2. Pulls saved binary float32 tensor records back into system layout schemas.
+        3. Restores relational tracking variables to make engines instantly responsive.
+
+        Args:
+            output_dir (Path): The source storage folder path from which serialized 
+                binary assets and pickles will be read.
+
+        Returns:
+            None: Instantiates model state memories across active runtime frames.
+        """        
         emb_path = output_dir / "embeddings.npy"
         meta_path = output_dir / "metadata.pkl"
         

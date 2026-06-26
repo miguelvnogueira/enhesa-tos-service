@@ -146,9 +146,9 @@ class ClauseClassifier:
                 are distributions or lists of parameters to try.
             test_size (float, optional): Proportion of the dataset to include in the 
                 test split. Defaults to 0.2.
-            n_iter (int, optional): Number of parameter settings that are sampled. 
+            n_iter (int, optional): Number of random parameter combinations per model family to explore in random search cv
                 Defaults to 15.
-            cv (int, optional): Number of folds for cross-validation splitting strategy. 
+            cv (int, optional): K in K-Fold Stratified Cross-Validation
                 Defaults to 5.
             random_state (int, optional): Pseudo-random number generator state used for 
                 random sampling and splitting to ensure reproducibility. Defaults to 42.
@@ -171,8 +171,8 @@ class ClauseClassifier:
             param_distributions=param_distributions,
             n_iter=n_iter,
             cv=cv,
-            scoring="f1_macro",  # Balanced metric optimal for text classification tasks
-            n_jobs=-1,           # Parallelize across all execution CPU cores
+            scoring="f1_macro",  
+            n_jobs=-1,           
             random_state=random_state
         )
         

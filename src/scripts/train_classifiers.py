@@ -3,7 +3,6 @@ import joblib
 from pathlib import Path
 import sys
 
-# Setup structural logging output formats
 logging.basicConfig(
     format="%(asctime)s.%(msecs)d %(levelname)s %(filename)s:%(lineno)d %(message)s",
     datefmt="%H:%M:%S",
@@ -11,7 +10,6 @@ logging.basicConfig(
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Resolve project pathing topologies (moves two steps out from src/scripts/ to find root)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
@@ -50,7 +48,6 @@ def main():
         models_output_dir.mkdir(parents=True, exist_ok=True)
 
 
-        # Tracking metrics dictionary for a final summary report
         leaderboard = {}
 
         for model_name, estimator in MODELS_TO_EXPERIMENT.items():
@@ -58,17 +55,15 @@ def main():
                         
             param_space = TUNING_GRIDS[model_name]
             
-            # Instantiate your custom wrapper with the base estimator configuration
             clause_clf = ClauseClassifier(estimator=estimator)
             
             try:
-                # 1. Automated tuning updates clause_clf.model to the best internal parameter structure
                 metrics_payload = clause_clf.tune_and_evaluate(
                     X, y, 
                     param_distributions=param_space, 
                     test_size=0.2, 
-                    n_iter=15,  # Explores 15 random parameter combinations per model family
-                    cv=5,       # 5-Fold Stratified Cross-Validation
+                    n_iter=15,  
+                    cv=5,       
                     random_state=42
                 )
                 
@@ -82,19 +77,15 @@ def main():
                     "accuracy": metrics_payload["accuracy"]
                 }
 
-                # Log the performance
                 logging.info(f"Optimized {model_name} Best-Fit Test Macro F1: {best_fit_metrics['macro_f1']:.4f}")
                 leaderboard[model_name] = best_fit_metrics["macro_f1"]
 
-                # Unique subdirectory
                 model_save_path = models_output_dir / model_name
                 model_save_path.mkdir(parents=True, exist_ok=True)
                 
-                # Save the best-fit model weights
                 logging.info(f"Freezing best-fit weights for {model_name}...")
                 clause_clf.save_model(model_save_path)
                 
-                # Save ONLY the streamlined best-fit metrics dictionary
                 report_file_path = model_save_path / "evaluation_report.joblib"
                 logging.info(f"Saving clean best-fit metrics report at: {report_file_path}")
                 joblib.dump(best_fit_metrics, report_file_path)
