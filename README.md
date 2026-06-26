@@ -21,6 +21,7 @@ To establish enterprise credibility and defensibility , the architectural decisi
 
 ## System Architecture & Data Fl
 
+```mermaid
 graph TD
     %% Define Styles and Colors
     classDef default fill:#1e1e2e,stroke:#cdd6f4,stroke-width:1px,color:#cdd6f4;
@@ -44,9 +45,8 @@ graph TD
     %% Final Outputs
     F --> G[Context-Aware Posterior Probability]:::processing
     G -->|Decision Threshold >= 0.50| H[JSON Payload Delivery<br>0/1 Verdict + Top-K Neighbors]:::output
+```
 
-
-    
                   ┌──────────────────────┐
                   │    Raw ToS Input     │
                   └──────────┬───────────┘
