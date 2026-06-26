@@ -1,10 +1,8 @@
-# Ignore everything INSIDE the data directory by default
+models/*
 data/*
 
-# White-list exception: Track ONLY the raw dataset zip file
 !data/ToS.zip
 
-# Virtual environment and local configurations
 venv/
 .env
 __pycache__/
