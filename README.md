@@ -19,43 +19,31 @@ To establish enterprise credibility and defensibility , the architectural decisi
 
 ---
 
-## System Architecture & Data Flow
+## System Architecture & Data Fl
 
-┌────────────────────────────────────────┐
-                  │         Incoming Target Clause         │
-                  └───────────────────┬────────────────────┘
-                                      │
-                         [ Legal-BERT Vectorization ]
-                                      │
-                                      ▼
-                      ┌───────────────┴───────────────┐
-                      │    Dense Embedding Vector     │
-                      │       (768-Dim float32)       │
-                      └───────┬───────────────┬───────┘
-                              │               │
-     ┌────────────────────────┘               └────────────────────────┐
-     ▼                                                                 ▼
-[ Global Classification Flow ]                        [ Local Semantic Neighborhood Flow ]
-  - Calibrated Classifier (SVC-RBF)                     - Spatial Index Vector Search
-  - Platt Scaling Transformation                        - Pulls Top-K (K=5) Closest Elements
-     │                                                                 │
-     │ Continuous Prior Probability [0, 1]                             │ Continuous Similarity Scores
-     ▼                                                                 ▼
-     └────────────────────────► ┌────────────────────────┐ ◄───────────┘
-                                │ Bayesian Post-Processor│
-                                └───────────┬────────────┘
-                                            │
-                                            ▼
-                                ┌────────────────────────┐
-                                │ Context-Aware Posterior│
-                                └───────────┬────────────┘
-                                            │ Decision Threshold (>= 0.50)
-                                            ▼
-                                ┌────────────────────────┐
-                                │  JSON Payload Delivery │
-                                │ (0/1 Verdict + Top-K)  │
-                                └────────────────────────┘
-                                
+graph TD
+    %% Define Styles and Colors
+    classDef default fill:#1e1e2e,stroke:#cdd6f4,stroke-width:1px,color:#cdd6f4;
+    classDef input fill:#313244,stroke:#f5e0dc,stroke-width:2px,color:#f5e0dc;
+    classDef processing fill:#11111b,stroke:#89b4fa,stroke-width:1px,color:#89b4fa;
+    classDef flow fill:#181825,stroke:#a6e3a1,stroke-width:1px,color:#a6e3a1;
+    classDef output fill:#313244,stroke:#f38ba8,stroke-width:2px,color:#f38ba8;
+
+    %% Workflow Nodes
+    A[Incoming Target Clause] :::input --> B[Legal-BERT Vectorization]:::processing
+    B --> C[Dense Embedding Vector<br>768-Dim float32]:::processing
+    
+    %% Dual Flows
+    C -->|Route Vector| D[Global Classification Flow<br>Calibrated Classifier SVC-RBF<br>Platt Scaling Curve]:::flow
+    C -->|Query Vector| E[Local Semantic Neighborhood Flow<br>Spatial Index Vector Search<br>Pulls Top-K K=5 Closest Elements]:::flow
+    
+    %% Merge at Bayesian Layer
+    D -->|Continuous Prior Probability| F[Bayesian Post-Processor]:::processing
+    E -->|Continuous Similarity Scores| F
+    
+    %% Final Outputs
+    F --> G[Context-Aware Posterior Probability]:::processing
+    G -->|Decision Threshold >= 0.50| H[JSON Payload Delivery<br>0/1 Verdict + Top-K Neighbors]:::output
 
                   ┌──────────────────────┐
                   │    Raw ToS Input     │
