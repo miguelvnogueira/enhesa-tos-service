@@ -18,7 +18,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 # Adjust this to point to the specific embedding experiment you want to stack (e.g., legal_bert_embeddings)
-EXPERIMENT_NAME = "legal_bert_embeddings" 
+EXPERIMENT_NAME = "simple_embeddings"
+#EXPERIMENT_NAME = "legal_bert_embeddings" 
 ARTIFACTS_DIR = PROJECT_ROOT / "models" / EXPERIMENT_NAME
 CLASSIFIERS_DIR = ARTIFACTS_DIR / "classifiers"
 
@@ -100,10 +101,10 @@ def main():
     # 8. Print Results formatted cleanly to match your leaderboard
     ensemble_metrics = {
         "Model": "MetaEnsemble_Stacking",
-        "Macro F1": metrics_payload["macro avg"]["f1-score"],
-        "Precision": metrics_payload["macro avg"]["precision"],
-        "Recall": metrics_payload["macro avg"]["recall"],
-        "Accuracy": metrics_payload["accuracy"]
+        "macro_f1": metrics_payload["macro avg"]["f1-score"],
+        "macro_precision": metrics_payload["macro avg"]["precision"],
+        "macro_recall": metrics_payload["macro avg"]["recall"],
+        "accuracy": metrics_payload["accuracy"]
     }
     
     
