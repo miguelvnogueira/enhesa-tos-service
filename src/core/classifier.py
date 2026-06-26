@@ -31,7 +31,8 @@ MODELS_TO_EXPERIMENT = {
         ("scaler", StandardScaler()),
         ("svc", SVC(
             kernel="rbf", 
-            class_weight="balanced", 
+            class_weight="balanced",
+            probability=True, 
             random_state=42
         ))
     ]),

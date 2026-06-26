@@ -21,6 +21,42 @@ To establish enterprise credibility and defensibility , the architectural decisi
 
 ## System Architecture & Data Flow
 
+┌────────────────────────────────────────┐
+                  │         Incoming Target Clause         │
+                  └───────────────────┬────────────────────┘
+                                      │
+                         [ Legal-BERT Vectorization ]
+                                      │
+                                      ▼
+                      ┌───────────────┴───────────────┐
+                      │    Dense Embedding Vector     │
+                      │       (768-Dim float32)       │
+                      └───────┬───────────────┬───────┘
+                              │               │
+     ┌────────────────────────┘               └────────────────────────┐
+     ▼                                                                 ▼
+[ Global Classification Flow ]                        [ Local Semantic Neighborhood Flow ]
+  - Calibrated Classifier (SVC-RBF)                     - Spatial Index Vector Search
+  - Platt Scaling Transformation                        - Pulls Top-K (K=5) Closest Elements
+     │                                                                 │
+     │ Continuous Prior Probability [0, 1]                             │ Continuous Similarity Scores
+     ▼                                                                 ▼
+     └────────────────────────► ┌────────────────────────┐ ◄───────────┘
+                                │ Bayesian Post-Processor│
+                                └───────────┬────────────┘
+                                            │
+                                            ▼
+                                ┌────────────────────────┐
+                                │ Context-Aware Posterior│
+                                └───────────┬────────────┘
+                                            │ Decision Threshold (>= 0.50)
+                                            ▼
+                                ┌────────────────────────┐
+                                │  JSON Payload Delivery │
+                                │ (0/1 Verdict + Top-K)  │
+                                └────────────────────────┘
+                                
+
                   ┌──────────────────────┐
                   │    Raw ToS Input     │
                   └──────────┬───────────┘
@@ -97,3 +133,16 @@ curl -X POST http://localhost:8000/api/v1/analyze \
 
 
 
+
+
+# RUNNING UI
+
+Start your backend server
+```
+poetry run uvicorn src.api.main:app --reload --port 8000
+```
+
+Start frontend app
+```
+poetry run streamlit run ui/app.py
+```
