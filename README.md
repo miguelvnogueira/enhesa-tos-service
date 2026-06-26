@@ -77,6 +77,7 @@ graph TD
     class I output;
 ```
 
+The flow above represents the entire experimental ground considered for indexing, semantic search and classification. Notice however, that Bayesian postprocessing (in its current form) showed no significant imp
 For more details, the user is referred to the [Report.pdf](Report.pdf).
 
 ---

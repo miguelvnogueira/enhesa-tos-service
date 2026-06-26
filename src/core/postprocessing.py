@@ -32,7 +32,7 @@ def compute_bayesian_posterior(
         if sim_score < min_sim_score: 
             continue
             
-        weight = sim_score ** 2  # Square it to heavily reward ultra-close matches (>0.90)
+        weight = sim_score **2
         total_weight += weight
         
         if result.get('is_unfair') == 1:
