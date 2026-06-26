@@ -11,6 +11,8 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+
+# COULD ADD MORE MODELS, make sure to keep structure of MODELS_TO_EXPERIMENT & respective TUNING_GRIDS
 MODELS_TO_EXPERIMENT = {
     "LogisticRegression": LogisticRegression(
         class_weight="balanced", 
@@ -51,7 +53,7 @@ MODELS_TO_EXPERIMENT = {
     )
 }
 
-# Map of the search space structures per estimator family
+
 TUNING_GRIDS = {
     "LogisticRegression": {
         "C": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],         
@@ -97,6 +99,19 @@ class ClauseClassifier:
     """
     
     def __init__(self, estimator=None) -> None:
+        """Initializes the model wrapper with a specified or default classifier.
+
+        If no estimator is provided, a Logistic Regression model with balanced class 
+        weights is used as the default baseline.
+
+        Args:
+            estimator (object, optional): A scikit-learn compatible classification model 
+                instance. Defaults to LogisticRegression(max_iter=1000, 
+                class_weight="balanced", random_state=42).
+
+        Attributes:
+            model (object): The instantiated classification model being used.
+        """        
         if estimator is None:
             self.model = LogisticRegression(max_iter=1000, class_weight="balanced", random_state=42)
             logging.info("No estimator specified. Defaulting to Balanced Logistic Regression.")
@@ -114,10 +129,32 @@ class ClauseClassifier:
         cv: int = 5,
         random_state: int = 42
     ) -> dict:
-        """
-        Runs a randomized search cross-validation space over the training split, 
-        updates the underlying estimator to the best found instance, and evaluates on test.
-        """
+        """Splits data, runs a randomized search cross-validation, tunes the estimator, 
+
+        and evaluates the best model on the test split.
+
+        This method optimizes hyperparameters using `RandomizedSearchCV` on the training 
+        partition based on a macro F1 score. It then updates the `self.model` attribute 
+        to use the best found estimator before performing final evaluation on the test set.
+
+        Args:
+            X (np.ndarray): Feature matrix / array of predictors.
+            y (np.ndarray): Target labels.
+            param_distributions (dict): Dictionary where keys are parameters and values 
+                are distributions or lists of parameters to try.
+            test_size (float, optional): Proportion of the dataset to include in the 
+                test split. Defaults to 0.2.
+            n_iter (int, optional): Number of parameter settings that are sampled. 
+                Defaults to 15.
+            cv (int, optional): Number of folds for cross-validation splitting strategy. 
+                Defaults to 5.
+            random_state (int, optional): Pseudo-random number generator state used for 
+                random sampling and splitting to ensure reproducibility. Defaults to 42.
+
+        Returns:
+            dict: The classification report dictionary containing precision, recall, 
+                f1-score, and support metrics evaluated on the test set.
+        """            
         logging.info(f"Splitting dataset (Test size: {test_size * 100}%)")
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=test_size, random_state=random_state, stratify=y
@@ -151,17 +188,51 @@ class ClauseClassifier:
         return classification_report(y_test, predictions, output_dict=True)
 
     def predict(self, query_embedding: np.ndarray) -> int:
+        """Predicts the class label for a given query vector embedding.
+
+        Args:
+            query_embedding (np.ndarray): A 1D or 2D array containing the vector 
+                embedding representation of the input query.
+
+        Raises:
+            ValueError: If the underlying model has not been initialized or trained yet.
+
+        Returns:
+            int: The predicted class label index (e.g., 0 or 1).
+        """
         if self.model is None:
             raise ValueError("Classifier states are uninitialized. Train or load a model first.")
         return int(self.model.predict(query_embedding)[0])
 
     def save_model(self, output_dir: Path) -> None:
+        """Serializes and saves the current model estimator to a specified directory.
+
+        Creates the target directory if it does not already exist, and freezes the 
+        underlying model instance using `joblib`.
+
+        Args:
+            output_dir (Path): A pathlib.Path object representing the destination 
+                directory where the model file will be saved.
+        """        
         output_dir.mkdir(parents=True, exist_ok=True)
         model_path = output_dir / "clf_estimator.joblib"
         joblib.dump(self.model, model_path)
         logging.info(f"Model estimator successfully frozen at: {model_path}")
 
     def load_model(self, output_dir: Path) -> None:
+        """Restores a serialized model estimator from a specified directory.
+
+        Loads the frozen model back into memory using `joblib` and updates the 
+        internal state of this instance wrapper.
+
+        Args:
+            output_dir (Path): A pathlib.Path object pointing to the directory 
+                containing the 'clf_estimator.joblib' file.
+
+        Raises:
+            FileNotFoundError: If the serialized model file does not exist at 
+                the specified target pathway.
+        """        
         model_path = output_dir / "clf_estimator.joblib"
         if not model_path.exists():
             raise FileNotFoundError(f"No serial structures found at target pathway: {model_path}")
