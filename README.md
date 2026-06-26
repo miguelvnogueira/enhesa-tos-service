@@ -23,66 +23,59 @@ To establish enterprise credibility and defensibility , the architectural decisi
 
 ```mermaid
 graph TD
-    %% Define Styles and Colors
+    %% Define Styles and Colors (Catppuccin Mocha-inspired)
     classDef input fill:#313244,stroke:#f5e0dc,stroke-width:2px,color:#f5e0dc;
+    classDef components fill:#1e1e2e,stroke:#cba6f7,stroke-width:1px,stroke-dasharray: 5 5,color:#cba6f7;
     classDef processing fill:#11111b,stroke:#89b4fa,stroke-width:1px,color:#89b4fa;
     classDef flow fill:#181825,stroke:#a6e3a1,stroke-width:1px,color:#a6e3a1;
     classDef output fill:#313244,stroke:#f38ba8,stroke-width:2px,color:#f38ba8;
 
-    %% Workflow Nodes
-    A[Incoming Target Clause] --> B[Legal-BERT Vectorization]
-    B --> C[Dense Embedding Vector<br>768-Dim float32]
-    
-    %% Dual Flows
-    C -->|Route Vector| D[Global Classification Flow<br>Calibrated Classifier SVC-RBF<br>Platt Scaling Curve]
-    C -->|Query Vector| E[Local Semantic Neighborhood Flow<br>Spatial Index Vector Search<br>Pulls Top-K K=5 Closest Elements]
-    
-    %% Merge at Bayesian Layer
-    D -->|Continuous Prior Probability| F[Bayesian Post-Processor]
-    E -->|Continuous Similarity Scores| F
-    
-    %% Final Outputs
-    F --> G[Context-Aware Posterior Probability]
-    G -->|Decision Threshold >= 0.50| H[JSON Payload Delivery<br>0/1 Verdict + Top-K Neighbors]
+    %% Input Node
+    A[Incoming Target Clause] --> B
 
-    %% Apply Styles explicitly at the bottom to avoid older parser errors
+    %% --- VECTORIZATION LAYER (Abstracted) ---
+    subgraph Vectorization_Layer [Configurable Embedding Component]
+        B{Active Embedding Engine}
+        B -->|all-MiniLM-L6-v2| C1[SimpleEmbeddingEngine<br>384-Dim Vector]
+        B -->|Legal-BERT| C2[LegalBertEmbeddingEngine<br>768-Dim Vector]
+    end
+
+    C1 --> D
+    C2 --> D
+    D[Dense Feature Vector Array] --> E
+    D --> F
+
+    %% --- CLASSIFICATION LAYER (Abstracted) ---
+    subgraph Classification_Layer [Modular Estimator Framework]
+        E{Selected ML Model}
+        E -->|Baseline / Interpretable| E1[Logistic Regression / LinearSVC]
+        E -->|Non-Linear / SOTA| E2[SVC RBF Pipeline]
+        E -->|Ensemble Tree-Based| E3[Random Forest / HistGradientBoosting]
+        E -->|Neural Network| E4[MLP Classifier]
+        E -->|Meta-Ensemble| E5[Stacking Classifier]
+    end
+
+    %% --- SEMANTIC SEARCH NEIGHBORHOOD ---
+    subgraph Search_Layer [Spatial Proximity Component]
+        F[Vector Spatial Search] --> F1[(Serialized Corpus Matrix)]
+        F1 --> F2[Extract Nearest Neighbors<br>Cosine Similarity > 0.5]
+    end
+
+    %% --- INFERENCE MERGE & POST-PROCESSING ---
+    Classification_Layer -->|Prior Probability| G[Empirical Bayesian Post-Processor]
+    Search_Layer -->|Local Neighborhood Ratio| G
+
+    %% Final Output Flow
+    G --> H[Context-Aware Posterior Probability]
+    H -->|Fallbacks to Model Prior if Neighbors = 0| I[Deterministic JSON Verdict]
+
+    %% Apply Styles
     class A input;
-    class B,C,F,G processing;
-    class D,E flow;
-    class H output;
+    class Vectorization_Layer,Classification_Layer,Search_Layer components;
+    class B,D,G,H processing;
+    class C1,C2,E1,E2,E3,E4,E5,F,F1,F2 flow;
+    class I output;
 ```
-
-                  ┌──────────────────────┐
-                  │    Raw ToS Input     │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │ Text Ingestion Layer │
-                  │  (List/String Coerce)│
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │   Legal-BERT Space   │
-                  │ (768-Dim float32)    │
-                  └─────┬──────────┬─────┘
-                        │          │
-        ┌───────────────┘          └───────────────┐
-        ▼                                          ▼
-┌───────────────┐                          ┌───────────────┐
-│ Spatial Index │                          │Ensemble Matrix│
-│ (Cosine Sim)  │                          │ (Frozen Joblib│
-└───────┬───────┘                          │  Estimators)  │
-        │                                  └───────┬───────┘
-        │                                          │
-        └───────────────┐          ┌───────────────┘
-                        ▼          ▼
-                  ┌──────────────────────┐
-                  │ JSON Payload Delivery│
-                  │(0/1 Verdict + Top-K) │
-                  └──────────────────────┘
-
 
 For more details, the user is referred to the Report.pdf.
 
