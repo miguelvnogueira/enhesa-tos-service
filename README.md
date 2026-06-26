@@ -11,11 +11,10 @@ Most consumers accept online Terms of Service (ToS) contracts without reading th
 ---
 
 ## Technical Grounding & Literature Context
-
-To establish enterprise credibility and defensibility , the architectural decisions implemented across this codebase are firmly grounded in recent peer-reviewed scientific literature:  
-- Embedding Superiority: Moving beyond the original baseline bag-of-words (BoW) and TF-IDF models established by Lippi et al. (2019) (which topped out at a macro F1 of 0.806) , this architecture embraces dense text vectors.  
-- Domain-Specific Advantage: Following Akash et al. (2024), we map clauses to a specialized Legal-BERT space, which dramatically outperforms general-purpose models (like all-MiniLM-L6-v2) by successfully capturing deep semantic nuances and avoiding vocabulary fragmentation on complex contractual terminology.  
-- Classifier Optimization: While a broad experimental matrix was evaluated (spanning Logistic Regression, LinearSVC, Random Forests, Histogram Gradient Boosting, and MLPs) , our testing validated that pairing Legal-BERT with an RBF-Kernel Support Vector Classifier (SVC RBF) yields the strongest standalone performance topology, nearly matching state-of-the-art benchmarks (Macro F1 of 0.871).
+To establish enterprise credibility and defensibility, the architectural decisions implemented across this codebase are firmly grounded in recent peer-reviewed scientific literature:  
+1) Embedding Superiority: Moving beyond the original baseline bag-of-words (BoW) and TF-IDF models established by Lippi et al. (2019)  (which topped out at a macro-averaged $F_1$ of 0.806) , this architecture embraces dense text vectors shown to be better specifically for application to the CLAUDETTE dataset (Akash et al., 2024).  
+2) Domain-Specific Advantage: Following Akash et al. (2024) , we map clauses to a specialized Legal-BERT space , which is shown here to outperform general-purpose models (like all-MiniLM-L6-v2).
+3) Classifier Optimization: While a broad experimental matrix was evaluated (spanning Logistic Regression, LinearSVC, Random Forests, Histogram Gradient Boosting, and MLPs) , our testing validated that pairing Legal-BERT with an RBF-Kernel Support Vector Classifier (SVC_RBF_Pipeline) yields the strongest standalone performance topology , achieving a Macro $F_1$ score of 0.871 (close to SOTA). 
 
 ---
 
@@ -83,7 +82,7 @@ For more details, the user is referred to the [Report.pdf](Report.pdf).
 Additionally the solution also includes:
 - a python FastAPI service (/src/api)
 - a Dockerfile to build the service
-- a minimal user interface to interact with the service
+- a minimal user interface to interact with the service (/ui)
 
 **Instructions on how to build and run are provided below.**
 
@@ -140,3 +139,11 @@ Start frontend app
 ```
 poetry run streamlit run ui/app.py
 ```
+
+---
+
+
+# References
+
+- Akash, B. S., Kupireddy, A., & Murthy, L. B. (2024). Unfair TOS: An automated approach using customized BERT. arXiv preprint arXiv:2401.11207. https://arxiv.org/abs/2401.11207
+- Lippi, M., Pałka, P., Contissa, G., Lagioia, F., Micklitz, H. W., Sartor, G., & Torroni, P. (2019). CLAUDETTE: An automated detector of potentially unfair clauses in online terms of service. Artificial Intelligence and Law, 27(2), 117–139. https://doi.org/10.1007/s10506-019-09243-2 
