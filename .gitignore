@@ -1,3 +1,4 @@
+models/*
 data/*
 
 !data/ToS.zip
