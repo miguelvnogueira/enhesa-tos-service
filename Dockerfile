@@ -42,5 +42,5 @@ COPY ./models /app/models
 # Expose the API port
 EXPOSE 8000
 
-# Route execution explicitly as a Python module to completely guarantee runtime path safety
-CMD ["python", "-m", "uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+CMD ["poetry", "run", "uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app"]

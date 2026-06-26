@@ -1,5 +1,6 @@
 services:
   tos-analysis-service:
+    image: enhesa-tos-api:latest
     build:
       context: .
       dockerfile: Dockerfile
