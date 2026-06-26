@@ -54,7 +54,7 @@ def main():
         leaderboard = {}
 
         for model_name, estimator in MODELS_TO_EXPERIMENT.items():
-            logging.info(f"🚀 Starting automated hyperparameter tuning for: {model_name}")
+            logging.info(f"Starting automated hyperparameter tuning for: {model_name}")
                         
             param_space = TUNING_GRIDS[model_name]
             
@@ -83,7 +83,7 @@ def main():
                 }
 
                 # Log the performance
-                logging.info(f"✅ Optimized {model_name} Best-Fit Test Macro F1: {best_fit_metrics['macro_f1']:.4f}")
+                logging.info(f"Optimized {model_name} Best-Fit Test Macro F1: {best_fit_metrics['macro_f1']:.4f}")
                 leaderboard[model_name] = best_fit_metrics["macro_f1"]
 
                 # Unique subdirectory
@@ -91,19 +91,19 @@ def main():
                 model_save_path.mkdir(parents=True, exist_ok=True)
                 
                 # Save the best-fit model weights
-                logging.info(f"💾 Freezing best-fit weights for {model_name}...")
+                logging.info(f"Freezing best-fit weights for {model_name}...")
                 clause_clf.save_model(model_save_path)
                 
                 # Save ONLY the streamlined best-fit metrics dictionary
                 report_file_path = model_save_path / "evaluation_report.joblib"
-                logging.info(f"📊 Saving clean best-fit metrics report at: {report_file_path}")
+                logging.info(f"Saving clean best-fit metrics report at: {report_file_path}")
                 joblib.dump(best_fit_metrics, report_file_path)
 
             except Exception as e:
-                logging.error(f"❌ Tuning or execution pipeline crashed on {model_name}: {str(e)}")
+                logging.error(f"Tuning or execution pipeline crashed on {model_name}: {str(e)}")
 
 
-        logging.info("🎉 All 5 model families have been tuned. Their unique best-fit states are frozen to disk!")
+        logging.info("All 5 model families have been tuned. Their unique best-fit states are frozen to disk!")
 
 
 if __name__ == "__main__":
