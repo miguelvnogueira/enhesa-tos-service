@@ -77,17 +77,18 @@ graph TD
     class I output;
 ```
 
-For more details, the user is referred to the Report.pdf.
+For more details, the user is referred to the [Report.pdf](Report.pdf).
 
 ---
 
 
-## Getting Started & Run Guidelines
-### Prerequisites
+## Prerequisites
 Docker and Docker Compose installed locally.
 
 Note for Linux users: Ensure your user is appended to the docker group, or prefix operational commands with sudo.
 
+
+## Run Guidelines
 ### Step 1. Spin up the Containerized API
 Run the orchestration layout command to build your environment and boot the REST interface.
 
@@ -112,18 +113,14 @@ The Linux fallback (if daemon socket permissions are not configured):
 sudo docker-compose up
 ```
 
-### Step 3. Send a test request
+### Testing the API
 curl -X POST http://localhost:8000/api/v1/analyze \
      -H "Content-Type: application/json" \
      -d '{"sentence": "The provider reserves the right to modify these terms at any time without prior notification.", "top_k":3}'
 
 
 
-
-
-
-
-# RUNNING UI
+### Running the UI
 
 Start your backend server
 ```

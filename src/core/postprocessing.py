@@ -4,7 +4,8 @@ from typing import Dict, List, Any
 def compute_bayesian_posterior(
     prior_prob: float, 
     search_results: List[Dict[str,Any]], 
-    baseline_unfair_rate: float = 0.11
+    min_sim_score: float = 0.5,
+    baseline_unfair_rate: float = 0.11,
 ) -> float:
     """
     Updates the model's prior probability using an empirical Bayesian likelihood 
@@ -28,7 +29,7 @@ def compute_bayesian_posterior(
     for result in search_results:
         sim_score = result.get('similarity_score', 0.0)
         # Enforce a minimum floor for similarity to prevent irrelevant matches from counting
-        if sim_score < 0.5: 
+        if sim_score < min_sim_score: 
             continue
             
         weight = sim_score ** 2  # Square it to heavily reward ultra-close matches (>0.90)
