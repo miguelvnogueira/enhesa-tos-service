@@ -2,6 +2,8 @@ import logging
 from pathlib import Path
 import joblib
 import numpy as np
+from typing import Dict, Any
+
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.linear_model import LogisticRegression
@@ -128,7 +130,7 @@ class ClauseClassifier:
         n_iter: int = 15, 
         cv: int = 5,
         random_state: int = 42
-    ) -> dict:
+    ) -> Dict[str,Any]:
         """Splits data, runs a randomized search cross-validation, tunes the estimator, 
 
         and evaluates the best model on the test split.

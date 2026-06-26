@@ -17,7 +17,21 @@ class SimpleEmbeddingEngine:
     """
     
     def __init__(self, model_name: str = "all-MiniLM-L6-v2") -> None:
-        """Initializes the dense semantic vector encoder framework."""
+        """
+        Initializes the dense semantic vector encoder framework.
+
+        1. Spins up a baseline SentenceTransformer token mapping engine.
+        2. Sets up standard dimensional spaces for general-purpose inference.
+        3. Prepares internal placeholders for indexing textual terms of service.
+
+        Args:
+            model_name (str, optional): The Hugging Face identifier for the 
+                pretrained transformer sequence to download and load into memory. 
+                Defaults to "all-MiniLM-L6-v2".
+
+        Returns:
+            None: Allocates hardware and model states directly onto the engine context.
+        """        
         logging.info(f"Loading SentenceTransformer vector mapping space: {model_name}")
         self.encoder = SentenceTransformer(model_name)
         self.corpus_embeddings = None
@@ -25,56 +39,100 @@ class SimpleEmbeddingEngine:
 
 
     def transform(self, texts: list[str] | str) -> np.ndarray:
-            """
-            Encodes raw text or a list of text strings into the precise float32 matrix 
-            structure expected by downstream classifiers and matrix similarity steps.
-            """
-            if self.encoder is None:
-                raise ValueError("Encoder framework is uninitialized.")
+        """
+        Encodes raw text or a list of text strings into the precise float32 matrix 
+        structure expected by downstream classifiers and matrix similarity steps.
+
+        1. Validates and ensures the text encoder framework is correctly warmed up.
+        2. Normalizes varying scalar shapes by coercing raw strings into a list format array.
+        3. Projects the sequence data through the transformer blocks to map semantic traits.
+
+        Args:
+            texts (list[str] | str): A single raw sentence string or a collection list 
+                of text sentences to be processed through the semantic feature pipeline.
+
+        Returns:
+            np.ndarray: A precise 2D continuous feature space matrix of float32 
+                embeddings ready for downstream classification or distance comparisons.
+        """
+        if self.encoder is None:
+            raise ValueError("Encoder framework is uninitialized.")
+        
+        if isinstance(texts, str):
+            texts = [texts]
             
-            # Coerce a single string input into a list format to guarantee a 2D matrix shape output
-            if isinstance(texts, str):
-                texts = [texts]
-                
-            return self.encoder.encode(texts, convert_to_numpy=True).astype("float32")
+        return self.encoder.encode(texts, convert_to_numpy=True).astype("float32")
 
     def build_index(self, df: pd.DataFrame) -> np.ndarray:
-            """Encodes a textual dataframe corpus into a fixed continuous feature space matrix."""
-            logging.info(f"Transforming {len(df)} lines into a dense feature space...")
-            
-            # CALLS THE NEW TRANSFORM METHOD INTERNALLY 
-            self.corpus_embeddings = self.transform(df['text'].tolist())
-            
-            self.metadata_df = df[['company', 'sentence_idx', 'text', 'is_unfair']].copy().reset_index(drop=True)
-            return self.corpus_embeddings
+        """
+        Encodes a textual dataframe corpus into a fixed continuous feature space matrix.
+
+        1. Extracts structural data attributes and routes text blocks through the encoder pipeline.
+        2. Caches calculated dense tensor sequences directly into active memory arrays.
+        3. Creates isolated lookup maps for historic attributes including company origins and labels.
+
+        Args:
+            df (pd.DataFrame): A collection source frame containing columns for 'text', 
+                'company', 'sentence_idx', and binary 'is_unfair' flags.
+
+        Returns:
+            np.ndarray: The finalized numerical matrix block representing the indexed 
+                semantic coordinates of the full text corpus.
+        """
+        logging.info(f"Transforming {len(df)} lines into a dense feature space...")
+        
+        self.corpus_embeddings = self.transform(df['text'].tolist())
+        
+        self.metadata_df = df[['company', 'sentence_idx', 'text', 'is_unfair']].copy().reset_index(drop=True)
+        return self.corpus_embeddings
 
     def search(self, query_text: str, top_k: int = 3) -> list[dict]:
-            """Performs a spatial proximity query using basic cosine similarity scoring."""
-            if self.corpus_embeddings is None or self.metadata_df is None:
-                raise ValueError("Engine states must be initialized or loaded before running queries.")
-                
-            # ALSO CALLS THE UNIFIED TRANSFORM METHOD
-            query_vector = self.transform(query_text)
+        """
+        Performs a spatial proximity query using basic cosine similarity scoring.
+
+        1. Converts user target text patterns into matching continuous dense feature arrays.
+        2. Evaluates distance metrics across the precomputed historical matrix arrays.
+        3. Ranks historical matches based on proximity weights and combines original records.
+
+        Args:
+            query_text (str): The raw evaluation clause sentence to look up across the database.
+            top_k (int, optional): Total maximum count of close matching documents to return. 
+                Defaults to 3.
+
+        Returns:
+            list[dict]: A ranked array of data structures containing close semantic texts, 
+                original ground-truth parameters, and calculated metric scores.
+        """
+        if self.corpus_embeddings is None or self.metadata_df is None:
+            raise ValueError("Engine states must be initialized or loaded before running queries.")
             
-            scores = cosine_similarity(query_vector, self.corpus_embeddings)[0]
-            top_indices = scores.argsort()[::-1][:top_k]
+        query_vector = self.transform(query_text)
+        
+        scores = cosine_similarity(query_vector, self.corpus_embeddings)[0]
+        top_indices = scores.argsort()[::-1][:top_k]
+        
+        results = []
+        for idx in top_indices:
+            row = self.metadata_df.iloc[idx].to_dict()
+            row['similarity_score'] = float(scores[idx])
+            results.append(row)
             
-            results = []
-            for idx in top_indices:
-                row = self.metadata_df.iloc[idx].to_dict()
-                row['similarity_score'] = float(scores[idx])
-                results.append(row)
-                
-            return results
+        return results
             
     def save_artifacts(self, output_dir: Path) -> None:
         """
         Serializes the active numerical matrix and metadata lookup tables directly to disk.
 
-        Parameters:
-        -----------
-        output_dir : Path
-            The directory path where assets will be flushed.
+        1. Ensures baseline indexes are actively instantiated in working system buffers.
+        2. Flushes the dense vector feature spaces into continuous binary numpy files.
+        3. Pickles structured lookups to preserve structural schemas outside active runtimes.
+
+        Args:
+            output_dir (Path): Explicit directory filesystem coordinates indicating where 
+                the compiled analytical states should be deposited.
+
+        Returns:
+            None: Commits cached structures onto stable storage layers.
         """
         if self.corpus_embeddings is None or self.metadata_df is None:
             raise ValueError("No calculated states found to save. Run build_index first.")

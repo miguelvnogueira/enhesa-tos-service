@@ -2,6 +2,7 @@ import logging
 import zipfile
 import pandas as pd
 from pathlib import Path
+from typing import List
 
 
 CATEGORIES_DICT = {
@@ -18,7 +19,7 @@ CATEGORIES_DICT = {
 
 
 
-def extract_all_lines_from_txt_in_zipfile(archive: zipfile.ZipFile, internal_path: str) -> list[str]:
+def extract_all_lines_from_txt_in_zipfile(archive: zipfile.ZipFile, internal_path: str) -> List[str]:
     """ For a given txt file inside the zip, extracts a list of all lines (each line is list item)
 
     Args:
