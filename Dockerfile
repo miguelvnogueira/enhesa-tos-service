@@ -6,8 +6,10 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     POETRY_VIRTUALENVS_CREATE=false \
     POETRY_NO_INTERACTION=1 \
-    # CRITICAL: Prevent Poetry network timeouts on heavy wheels
-    POETRY_REQUESTS_TIMEOUT=300
+    # CRITICAL: Broadening global timeout boundaries for massive neural wheels
+    POETRY_REQUESTS_TIMEOUT=600 \
+    PIP_TIMEOUT=600 \
+    PIP_DEFAULT_TIMEOUT=600
 
 WORKDIR /app
 
@@ -21,14 +23,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install official Poetry to a dedicated global directory
 ENV POETRY_HOME="/opt/poetry"
 RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="$POETRY_HOME/bin:$PATH"
+
+# Append local and global package bin paths to the environment PATH variable
+ENV PATH="$POETRY_HOME/bin:/root/.local/bin:/usr/local/bin:$PATH"
 
 # Copy only dependency management files first to maximize Docker layer caching
 COPY pyproject.toml poetry.lock* ./
 
-# FIX: Mount a dedicated cache directory to handle streaming heavy files safely
+# FIX: Expand installer configuration parameters to gracefully handle heavy streams
 RUN --mount=type=cache,target=/root/.cache/pypoetry \
-    poetry install --only main --no-root
+    poetry config installer.max-workers 2 && \
+    poetry install --only main --no-root -vvv
 
 # Copy application source code and precomputed model artifacts
 COPY ./src /app/src
@@ -37,5 +42,5 @@ COPY ./models /app/models
 # Expose the API port
 EXPOSE 8000
 
-# Run the Uvicorn application server
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Route execution explicitly as a Python module to completely guarantee runtime path safety
+CMD ["python", "-m", "uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

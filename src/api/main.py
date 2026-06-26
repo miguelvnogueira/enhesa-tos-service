@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pathlib import Path
 
-# Absolute/Relative path adjustments based on your layout
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 from src.core.feature_engine import LegalBertEmbeddingEngine
@@ -11,11 +10,9 @@ from src.core.classifier import ClauseClassifier
 from src.core.clause_processor import process_user_sentence
 from src.api.schemas import AnalysisRequest, AnalysisResponse, MatchResult
 
-# Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-# Global container for ML models loaded on startup
 ml_models = {}
 
 @asynccontextmanager
@@ -24,14 +21,12 @@ async def lifespan(app: FastAPI):
     try:
         logger.info("Initializing embedding engine and models...")
         
-        # 1. Initialize & load embedding engine
         artifacts_exp = "legal_bert_embeddings"
         artifacts_dir = PROJECT_ROOT / "models" / artifacts_exp
         search_engine = LegalBertEmbeddingEngine()
         search_engine.load_artifacts(artifacts_dir)
         ml_models["search_engine"] = search_engine
         
-        # 2. Initialize & load classifier
         clause_clf = ClauseClassifier()
         mlp_model_dir = artifacts_dir / "classifiers" / "SVC_RBF_Pipeline"
         clause_clf.load_model(mlp_model_dir)
@@ -79,7 +74,6 @@ async def analyze_clause(payload: AnalysisRequest):
             payload.top_k
         )
         
-        # Map raw engine arrays/dicts to Pydantic Response schemas
         formatted_matches = []
         for rank, match in enumerate(search_results, 1):
             formatted_matches.append(
